@@ -199,7 +199,7 @@ rotation_center_array = np.zeros((canvas_array.shape[0], 2)).astype(np.int32)
 '''
 
 # writing the canvas size: 
-fs.write("CANVAS SIZE", np.array[WIDTH, HEIGHT])
+fs.write("CANVAS SIZE", np.array([WIDTH, HEIGHT]))
 for i in range(canvas_array.shape[0]):
     img_off_string = "img{}".format(i)
     fs.write(img_off_string + "_rotate_center", rotation_array[i])
