@@ -48,13 +48,13 @@ for i in all_image_paths:
     if os.path.exists(i) == False:
         print("file : {} does not exists".format(i))
         exit(0)
-if os.path.exists(yml_save_path) == False:
-    print("file : {} does not exists".format(yml_save_path))
-    exit(0)
 
 image_list = []
 for img_path in all_image_paths:
     _img = cv2.imread (img_path)
+    if type(_img) == type(None):
+        print("cannot read image : {}".format(img_path))
+        exit(0)
     image_list.append(_img)
 
 # image being loaded successfully.
