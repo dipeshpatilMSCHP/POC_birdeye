@@ -4,7 +4,19 @@ HELP = '''
     usage : this script <images path seperated with commas> <yml info save path> <image_2_side {default : right }
         first image path should be one with that is constant. 
 
-    images it takes is after bird eyed view images. 
+    images it takes is after bird eyed view images.
+
+    controls : 
+        moving image : 
+            q -> left | w -> up | e -> down | r -> right 
+        scaling image : 
+            '-' -> scale down 
+            '+' -> scale up 
+        rotation : 
+            'n' -> angle - 
+            'm' -> angle +
+        rotation center movement : 
+            u -> left | i -> up | o -> down | p -> right 
     
 '''
 
@@ -18,9 +30,9 @@ import os
 HEIGHT = 720
 WIDTH = 1280
 
-STEP = int(5)
-SCALE_STEP = float(0.1)
-ANGLE_STEP = int(5)
+STEP = int(1)
+SCALE_STEP = float(0.01)
+ANGLE_STEP = int(1)
 
 
 if len(sys.argv) < 3:
@@ -152,7 +164,7 @@ while True:
         # translation part 
         if offsets_array[i, 1] < 0:
             translation_img_array[i, 0: HEIGHT + offsets_array[i, 1]  , offsets_array[i, 0] :, : ]  = rotated_image[ abs(offsets_array[i, 1]) : HEIGHT, 0: WIDTH - offsets_array [i, 0]]
-            
+
         elif offsets_array[i, 0] < 0:
             translation_img_array[i, offsets_array[i, 1] : 0, WIDTH + offsets_array[i, 0] :, : ]  = rotated_image[ 0 : HEIGHT - offsets_array[i, 1], abs(offsets_array[i, 0]): WIDTH + offsets_array [i, 0]]
         else:    
