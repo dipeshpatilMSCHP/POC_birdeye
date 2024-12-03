@@ -17,6 +17,8 @@ if len(sys.argv) < 1:
 
 img = cv2.imread(sys.argv[1])
 HEIGHT, WIDTH = img.shape[:2]
+PIXEL_STEP = 5
+
 print(HEIGHT, WIDTH, img.shape)
 
 # defining x1, x2, x3, x4
@@ -29,7 +31,6 @@ reset = False
 while True:
     canvas = img.copy()
 
-
     key = cv2.waitKey(1)
     
     ########################## keys and command define part #################################
@@ -41,13 +42,13 @@ while True:
     
     if key == ord ('q') or key == ord('w') or key == ord('e') or key == ord('r'):
         if key == ord('q') and points[circle_selected, 0] > 0:
-            points[circle_selected, 0] -= 1
+            points[circle_selected, 0] -= PIXEL_STEP
         elif key == ord('w') and points[circle_selected, 1] > 0:
-            points[circle_selected, 1] -= 1
+            points[circle_selected, 1] -= PIXEL_STEP
         elif key == ord('e') and points[circle_selected, 1] < HEIGHT:
-            points[circle_selected, 1] += 1
+            points[circle_selected, 1] += PIXEL_STEP
         elif key == ord('r') and points[circle_selected, 0] < WIDTH:
-            points[circle_selected, 0] += 1
+            points[circle_selected, 0] += PIXEL_STEP
     
     if key == ord('c') or key == ord('x'):
         if key == ord('c'):
