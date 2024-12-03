@@ -22,7 +22,7 @@ import argparse
 import os
 from collections import OrderedDict
 
-PIXEL_STEP = 20
+PIXEL_STEP = 2
 
 
 def parse_yml(yml_path, img_list_len):
@@ -235,10 +235,14 @@ if __name__ == "__main__":
             ######################################################################################
             # display the canvas
             x = cv2.resize(img_without_blend, None, fx=0.5, fy=0.5)
+            final_canvas = cv2.resize(final_canvas, None, fx=0.5, fy=0.5)
 
             cv2.imshow("canvas", final_canvas)
             cv2.imshow("ref", x)
         
+        
+        for i in range(blends_array.shape[0]):
+                image_canvases[img_indx] = cv2.multiply(image_canvases[img_indx].astype(np.float32), blends_array[i]).astype(np.uint8)
         # saving the blend array 
         # blends_array = np.ones((no_of_blends, HEIGHT, WIDTH, 3)).astype(np.float32)
         p = image_name_list[img_indx].split('.')[0]
