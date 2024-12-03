@@ -27,7 +27,6 @@ points = np.array([[ 10, 10], [10, HEIGHT - 10],
 
 circle_selected = 0
 clean  = False 
-reset = False
 while True:
     canvas = img.copy()
 
@@ -50,11 +49,8 @@ while True:
         elif key == ord('r') and points[circle_selected, 0] < WIDTH:
             points[circle_selected, 0] += PIXEL_STEP
     
-    if key == ord('c') or key == ord('x'):
-        if key == ord('c'):
-            clean = True
-        else:
-            reset = True
+    if key == ord('c'):
+        clean = True
     
 
 
@@ -83,18 +79,16 @@ while True:
         b32 = points[3, 1] - m32 * points[3,0]
 
         m01 = (points[1, 1] - points[0, 1]) / (points[1, 0] - points[0, 0])
-        b01 = points[1, 1] - m32 * points[1,0]
+        b01 = points[1, 1] - m01 * points[1,0]
+        
 
         for y in range(blended_canvas.shape[0]):
             for x in range(blended_canvas.shape[1]):
-                if y > m32 * x + b32:
+                if y < m32 * x + b32:
                     blended_canvas[y, x, :] = [1, 1, 1]
-                if y < m01 * x + b01:
+                if y > m01 * x + b01:
                     blended_canvas[y, x, :] = [1, 1, 1]
-                
-        clean = False
-
-
+        
     canvas = cv2.multiply (canvas.astype(np.float32), blended_canvas).astype(np.uint8)
 
     # drawing the lines 
@@ -109,7 +103,13 @@ while True:
             cv2.circle (canvas, points[i], 5, (0, 255, 0), 2)
     ######################################################################################
     # display the canvas
+
     cv2.imshow("canvas", canvas)
+
+    if clean:
+        if (cv2.waitKey(0) == 120): # press x
+                clean = False
+
 
 cv2.destroyAllWindows()
 
