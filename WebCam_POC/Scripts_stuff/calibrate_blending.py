@@ -22,7 +22,7 @@ import argparse
 import os
 from collections import OrderedDict
 
-PIXEL_STEP = 2
+PIXEL_STEP = 5
 
 
 def parse_yml(yml_path, img_list_len):
@@ -152,7 +152,7 @@ if __name__ == "__main__":
         blend_selected = 0
         
         c_change = True
-
+        clean = False
         flip = False
         while True:
 
@@ -184,8 +184,9 @@ if __name__ == "__main__":
                 c_change = True
                 # blend_points [blend_selected, circle_selected, x/y]
             
-        
-            
+            if key == ord('c'):
+                clean = True
+
 
             #################################### final drawing part #################################
             x_min = np.min(blend_points[blend_selected, :2, 0])
@@ -204,6 +205,29 @@ if __name__ == "__main__":
 
             tmp_canvas = np.ones ((HEIGHT, WIDTH, 3)).astype(np.float32)
             tmp_canvas[ :, x_min : x_max] = blended_area
+
+
+            if clean:
+                m32 = (blend_points[blend_selected, 3, 1] - blend_points[blend_selected, 2, 1]) / (blend_points[blend_selected, 3, 0] - blend_points[blend_selected, 2, 0])
+                b32 = blend_points[blend_selected, 3, 1] - m32 * blend_points[blend_selected, 3,0]
+
+                m01 = (blend_points[blend_selected, 1, 1] - blend_points[blend_selected, 0, 1]) / (blend_points[blend_selected, 1, 0] - blend_points[blend_selected, 0, 0])
+                b01 = blend_points[blend_selected, 1, 1] - m01 * blend_points[blend_selected, 1,0]
+
+                m02 = (blend_points[blend_selected, 2, 1] - blend_points[blend_selected, 0, 1]) / (blend_points[blend_selected, 2, 0] - blend_points[blend_selected, 0, 0])
+                b02 = blend_points[blend_selected, 2, 1] - m02 * blend_points[blend_selected, 2,0]
+
+                for y in range(tmp_canvas.shape[0]):
+                    for x in range(tmp_canvas.shape[1]):
+
+                        if y < m02 * x + b02 and x > blend_points[blend_selected, 0,0]-1 and x < blend_points[blend_selected, 2,0]+1:
+                            tmp_canvas[y, x, :] = [1, 1, 1]
+
+                        if y > m01 * x + b01 and x > (x_min-1):
+                            tmp_canvas[y, x, :] = [1, 1, 1]
+                        if y < m32 * x + b32 and x<x_max+1:
+                            tmp_canvas[y, x, :] = [1, 1, 1]
+
             blends_array[blend_selected] = tmp_canvas.copy()
 
             ################################## calculation ##########################################
@@ -239,7 +263,9 @@ if __name__ == "__main__":
 
             cv2.imshow("canvas", final_canvas)
             cv2.imshow("ref", x)
-        
+            if clean:
+                if (cv2.waitKey(0) == 27): # press x
+                    clean = False
         
         for i in range(blends_array.shape[0]):
                 image_canvases[img_indx] = cv2.multiply(image_canvases[img_indx].astype(np.float32), blends_array[i]).astype(np.uint8)
