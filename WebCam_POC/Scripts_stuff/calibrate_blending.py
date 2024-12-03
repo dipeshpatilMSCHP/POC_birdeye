@@ -19,9 +19,10 @@ import numpy as np
 import cv2
 import sys 
 import argparse
-import os 
+import os
+from collections import OrderedDict
 
-PIXEL_STEP = 5
+PIXEL_STEP = 20
 
 
 def parse_yml(yml_path, img_list_len):
@@ -45,8 +46,10 @@ def parse_yml(yml_path, img_list_len):
 
 
 def parse_name():
-    if len(sys.argv) < 2:
-        print("give image path as argument \n")
+
+    # images_path, yml_path, save_folder. 
+    if len(sys.argv) < 3:
+        print("give image path as argument argument : images_path, yml_path, save_folder\n")
         exit(0)
     
     # reading image into a list 
@@ -70,8 +73,13 @@ def parse_name():
         exit(0)
 
     yml_dict = parse_yml (sys.argv[2], len(image_list))
+    
+    # checking save directory path 
+    if os.path.isdir(sys.argv[3]) == False:
+        os.makedirs(sys.argv[3], exists_ok=True)
+    
 
-    return image_list, image_name_list, yml_dict
+    return image_list, image_name_list, yml_dict, sys.argv[3]
 
 def generate_canvases(image_array, yml_data):
     canvases = np.zeros(( image_array.shape[0], HEIGHT, WIDTH, image_array.shape[-1])).astype(np.uint8)
@@ -93,9 +101,15 @@ def generate_canvases(image_array, yml_data):
 
     return canvases
 
+def blend_selection () :
+    print("Enter the number of blends")
+    print("\n=============================================================================\n")
+    choice = int(input())
+    return choice
+
 
 if __name__ == "__main__":
-    image_list, image_name_list, yml_data = parse_name()
+    image_list, image_name_list, yml_data, save_path = parse_name()
     WIDTH, HEIGHT = yml_data['canvas_size'] 
     print(HEIGHT, WIDTH)
     print("image_names : {}".format(image_name_list))
@@ -106,114 +120,132 @@ if __name__ == "__main__":
     points = np.array([[ 10, 10], [10, HEIGHT - 10], 
         [100, 10], [100, HEIGHT - 10]])
 
+    img_without_blend = np.zeros((HEIGHT, WIDTH, 3)).astype(np.uint8)
+    for each_canvas in image_canvases:
+        img_without_blend = cv2.add (img_without_blend, each_canvas)
+
     circle_selected = 0
     clean  = False 
     add_blend_region = True
 
-    blends_dict = dict()
+    blends_dict = OrderedDict()
+    blend_coordinates = OrderedDict()
     for name in image_name_list:
         blends_dict[name] = list()
+        blend_coordinates[name] = list()
 
-    while True:
-        
-        key = cv2.waitKey(1)
-        
-        canvas = np.zeros((HEIGHT, WIDTH, 3)).astype(np.uint8)
-        for i in range(image_canvases.shape[0]):
-            canvas = cv2.add(image_canvases[i], canvas)   
+    key_of_selected = None
+    indx_selected = None
+    
+    for img_indx in range (image_canvases.shape[0]):
 
-        if key == ord('a'): # Add new set of canvas 
-            add_blend_region = True
-
-        if add_blend_region:
-            os.system('clear')
-            print("Enter the image you want to add blending for : Press the corresponding number")
-            print("\n=============================================================================\n")
-            for i, _name in enumerate(image_name_list):
-                print("{} : {}".format(i, _name))
-            print("\n=============================================================================\n")
-            choice = int(input())
-            add_blend_region = False
-            
-
-        ########################## keys and command define part #################################
-        if key == 27:
+        print("===========================================")
+        print("generating image blending regions for image : {}".format(image_name_list[img_indx]))
+        no_of_blends = blend_selection()
+        if no_of_blends == -1:
             break
 
-        if key == 32:
-            circle_selected = (circle_selected + 1) if circle_selected < 3 else 0
+        blends_array = np.ones((no_of_blends, HEIGHT, WIDTH, 3)).astype(np.float32)
         
-        if key == ord ('q') or key == ord('w') or key == ord('e') or key == ord('r'):
-            if key == ord('q') and points[circle_selected, 0] > 0:
-                points[circle_selected, 0] -= PIXEL_STEP
-            elif key == ord('w') and points[circle_selected, 1] > 0:
-                points[circle_selected, 1] -= PIXEL_STEP
-            elif key == ord('e') and points[circle_selected, 1] < HEIGHT:
-                points[circle_selected, 1] += PIXEL_STEP
-            elif key == ord('r') and points[circle_selected, 0] < WIDTH:
-                points[circle_selected, 0] += PIXEL_STEP
+        blend_points = np.array([[[ 10, 10], [10, HEIGHT - 10], [100, 10], [100, HEIGHT - 10]]])
+        blend_points = np.tile (blend_points, (no_of_blends,1,1))
+        blend_selected = 0
         
-        if key == ord('c'):
-            clean = True
+        c_change = True
+
+        flip = False
+        while True:
+
+            ########################## keys and command define part #################################
+            key = cv2.waitKey(1)
+            if key == 27:
+                cv2.destroyAllWindows()
+                break
+
+            if key == ord('n'):
+                blend_selected = (blend_selected + 1) if blend_selected < (no_of_blends - 1) else 0
+                print("blend_selected : {}".format(blend_selected))
+            if key == ord('f'):     # for flipping. 
+                flip = not flip
+
+            if key == 32:
+                circle_selected = (circle_selected + 1) if circle_selected < 3 else 0
+            
+            if key == ord ('q') or key == ord('w') or key == ord('e') or key == ord('r'):
+                if key == ord('q') and blend_points[blend_selected, circle_selected, 0] > 0:
+                    blend_points[blend_selected, circle_selected, 0] -= PIXEL_STEP
+                elif key == ord('w') and blend_points[blend_selected, circle_selected, 1] > 0:
+                    blend_points[blend_selected, circle_selected, 1] -= PIXEL_STEP
+                elif key == ord('e') and blend_points[blend_selected, circle_selected, 1] < HEIGHT:
+                    blend_points[blend_selected, circle_selected, 1] += PIXEL_STEP
+                elif key == ord('r') and blend_points[blend_selected, circle_selected, 0] < WIDTH:
+                    blend_points[blend_selected, circle_selected, 0] += PIXEL_STEP
+                print("coordinate change : {}".format(blend_points[blend_selected].tolist()))
+                c_change = True
+                # blend_points [blend_selected, circle_selected, x/y]
+            
         
-
-
-        #########################################################################################
-        
-    
-        
-
-        #################################### final drawing part #################################
-        x_min = np.min(points[:2, 0])
-        x_max = np.max(points[2:, 0])
-
-        # generating the blended area 
-
-        blended_area = np.linspace(0,1, x_max - x_min)
-        blended_area = np.tile( blended_area, (3, HEIGHT, 1) )
-        blended_area = np.moveaxis(blended_area, 0, -1)
-
-        blended_canvas = np.ones (canvas.shape).astype(np.float32)
-        blended_canvas[:, x_min : x_max] = blended_area
-
-        ################################## calculation ##########################################
-        if clean:
-
-            m32 = (points[3, 1] - points[2, 1]) / (points[3, 0] - points[2, 0])
-            b32 = points[3, 1] - m32 * points[3,0]
-
-            m01 = (points[1, 1] - points[0, 1]) / (points[1, 0] - points[0, 0])
-            b01 = points[1, 1] - m01 * points[1,0]
             
 
-            for y in range(blended_canvas.shape[0]):
-                for x in range(blended_canvas.shape[1]):
-                    if y < m32 * x + b32:
-                        blended_canvas[y, x, :] = [1, 1, 1]
-                    if y > m01 * x + b01:
-                        blended_canvas[y, x, :] = [1, 1, 1]
-            
-        canvas = cv2.multiply (canvas.astype(np.float32), blended_canvas).astype(np.uint8)
+            #################################### final drawing part #################################
+            x_min = np.min(blend_points[blend_selected, :2, 0])
+            x_max = np.max(blend_points[blend_selected, 2:, 0])
+            if c_change:
+                print("x_min : {} | x_max : {}".format(x_min, x_max))
+                c_change = False
 
-        # drawing the lines 
-        cv2.line (canvas, points[0], points[1], (0, 0, 255), 1)
-        cv2.line (canvas, points[2], points[3], (0, 0, 255), 1)
-
-        # drawing the circles
-        for i in range(4):
-            if i == circle_selected:
-                cv2.circle (canvas, points[i], 5, (255, 255, 0), 3)
+            # generating the blended area 
+            if flip:
+                blended_area = np.linspace(1,0, x_max - x_min)
             else:
-                cv2.circle (canvas, points[i], 5, (0, 255, 0), 2)
-        ######################################################################################
-        # display the canvas
+                blended_area = np.linspace(0,1, x_max - x_min)
+            blended_area = np.tile( blended_area, (3, HEIGHT, 1) )
+            blended_area = np.moveaxis(blended_area, 0, -1)
 
-        cv2.imshow("canvas", canvas)
+            tmp_canvas = np.ones ((HEIGHT, WIDTH, 3)).astype(np.float32)
+            tmp_canvas[ :, x_min : x_max] = blended_area
+            blends_array[blend_selected] = tmp_canvas.copy()
 
-        if clean:
-            if (cv2.waitKey(0) == 27): # press x
-                    clean = False
+            ################################## calculation ##########################################
+            
+            # multiplying blends with corresponding image. 
+            tmp_image_canvases = image_canvases.copy()
+            for i in range(blends_array.shape[0]):
+                tmp_image_canvases[img_indx] = cv2.multiply(tmp_image_canvases[img_indx].astype(np.float32), blends_array[i]).astype(np.uint8)
+            
+            final_canvas = np.zeros((HEIGHT, WIDTH, 3)).astype(np.uint8)
 
+            img_without_blend = np.zeros((HEIGHT, WIDTH, 3)).astype(np.uint8)
+            for i, each_canvas in enumerate(tmp_image_canvases):
+                final_canvas = cv2.add(each_canvas, final_canvas)
+                img_without_blend = cv2.add(image_canvases[i], img_without_blend)
 
-    cv2.destroyAllWindows()
+            # drawing the lines 
+            cv2.line (final_canvas, blend_points[blend_selected, 0], blend_points[blend_selected, 1], (0, 0, 255), 1)
+            cv2.line (final_canvas, blend_points[blend_selected, 2], blend_points[blend_selected, 3], (0, 0, 255), 1)
+
+            # drawing the circles
+            for i in range(4):
+                if i == circle_selected:
+                    cv2.circle (final_canvas, blend_points[blend_selected, i], 5, (255, 255, 0), 3)
+                    cv2.circle (img_without_blend, blend_points[blend_selected, i], 5, (255, 255, 0), 3)
+                else:
+                    cv2.circle (final_canvas, blend_points[blend_selected, i], 5, (0, 255, 0), 2)
+                    cv2.circle (img_without_blend, blend_points[blend_selected, i], 5, (0, 255, 0), 2)
+            ######################################################################################
+            # display the canvas
+            x = cv2.resize(img_without_blend, None, fx=0.5, fy=0.5)
+
+            cv2.imshow("canvas", final_canvas)
+            cv2.imshow("ref", x)
+        
+        # saving the blend array 
+        # blends_array = np.ones((no_of_blends, HEIGHT, WIDTH, 3)).astype(np.float32)
+        p = image_name_list[img_indx].split('.')[0]
+        for i in range(blends_array.shape[0]):
+            p_ = os.path.join(save_path, p + "_blendmask_{}.npy".format(i))
+            np.save(p_, blends_array[i])
+            print("saved to path : {}".format(p_))
+
+    
 
