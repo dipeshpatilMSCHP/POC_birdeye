@@ -135,30 +135,51 @@ def do_sloped_blend(blend_points, blend_canvas):
     for y in range(blend_canvas.shape[0]):
         for x in range(blend_canvas.shape[1]):
 
-            # its a straight line 
-            if math.isinf(m02):
-                if x < blend_points[0, 0]:
-                    blend_canvas[y, x, :] = [1, 1, 1]
-            elif (m02) > 0 and y > m02 * x + b02:
-                blend_canvas[y, x, :] = [1, 1, 1]
-            elif (m02) < 0 and y < m02 * x + b02:
-                blend_canvas[y, x, :] = [1, 1, 1]
-
+            # m01 part  
             if math.isinf(m01):
                 if x < blend_points[0, 0]:
                     blend_canvas[y, x, :] = [1, 1, 1]
-            elif (m01) > 0 and y > m01 * x + b01:
-                blend_canvas[y, x, :] = [1, 1, 1]
-            elif (m01) < 0 and y < m01 * x + b01:
-                blend_canvas[y, x, :] = [1, 1, 1]
+            if (m01 > 0 and b01 < 0) or (m01 < 0 and b01 > 0):
+                if (m01) > 0 and y > m01 * x + b01:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+                elif (m01) < 0 and y < m01 * x + b01:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+            elif (m01 > 0 and b02 > 0) or (m01 < 0 and b02 < 0):
+                if (m01) > 0 and y < m01 * x + b01:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+                elif (m01) < 0 and y > m01 * x + b01:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+        
+            # m02 part 
+            if math.isinf(m02):
+                if x < blend_points[0, 0]:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+            if (m02 > 0 and b02 < 0) or (m02 < 0 and b02 > 0):
+                if (m02) > 0 and y > m02 * x + b02:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+                elif (m02) < 0 and y < m02 * x + b02:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+            elif (m02 > 0 and b02 > 0) or (m02 < 0 and b02 < 0):
+                if (m02) > 0 and y < m02 * x + b02:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+                elif (m02) < 0 and y > m02 * x + b02:
+                    blend_canvas[y, x, :] = [1, 1, 1]
 
+            # m03 part. 
             if math.isinf(m32):
                 if x < blend_points[3, 0]:
                     blend_canvas[y, x, :] = [1, 1, 1]
-            elif (m32) > 0 and y < m32 * x + b32:
-                blend_canvas[y, x, :] = [1, 1, 1]
-            elif (m32) < 0 and y > m32 * x + b32:
-                blend_canvas[y, x, :] = [1, 1, 1]
+            if (m32 > 0 and b32 < 0) or (m32 < 0 and b32 > 0):
+                if (m32) > 0 and y < m32 * x + b32:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+                elif (m32) < 0 and y > m32 * x + b32:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+            elif (m32 > 0 and b32 > 0) or (m32 < 0 and b32 < 0):
+                if (m32) > 0 and y > m32 * x + b32:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+                elif (m32) < 0 and y < m32 * x + b32:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+
 
     return blend_canvas
 
