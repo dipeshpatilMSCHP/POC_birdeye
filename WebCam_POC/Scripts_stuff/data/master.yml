@@ -1,0 +1,43 @@
+%YAML:1.0
+---
+CANVAS SIZE: !!opencv-matrix
+   rows: 2
+   cols: 1
+   dt: i
+   data: [ 1280, 720 ]
+img0_rotate_center: 0.
+img0_rotate: !!opencv-matrix
+   rows: 2
+   cols: 1
+   dt: i
+   data: [ 0, 0 ]
+img0_scale: 1.
+img0offset: !!opencv-matrix
+   rows: 2
+   cols: 1
+   dt: i
+   data: [ 290, 104 ]
+img1_rotate_center: -22.
+img1_rotate: !!opencv-matrix
+   rows: 2
+   cols: 1
+   dt: i
+   data: [ 188, 475 ]
+img1_scale: 1.0499999523162842e+00
+img1offset: !!opencv-matrix
+   rows: 2
+   cols: 1
+   dt: i
+   data: [ 534, 28 ]
+img2_rotate_center: 27.
+img2_rotate: !!opencv-matrix
+   rows: 2
+   cols: 1
+   dt: i
+   data: [ 450, 477 ]
+img2_scale: 7.0000028610229492e-01
+img2offset: !!opencv-matrix
+   rows: 2
+   cols: 1
+   dt: i
+   data: [ 42, 42 ]

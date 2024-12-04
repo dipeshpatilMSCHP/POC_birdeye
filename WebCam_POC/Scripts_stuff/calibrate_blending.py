@@ -26,6 +26,18 @@ import math
 PIXEL_STEP = 5
 alpha = 1e5
 
+def savee():
+        
+        for i in range(blends_array.shape[0]):
+                image_canvases[img_indx] = cv2.multiply(image_canvases[img_indx].astype(np.float32), blends_array[i]).astype(np.uint8)
+        # saving the blend array 
+        # blends_array = np.ones((no_of_blends, HEIGHT, WIDTH, 3)).astype(np.float32)
+        p = image_name_list[img_indx].split('.')[0]
+        for i in range(blends_array.shape[0]):
+            p_ = os.path.join(save_path, p + "_blendmask_{}.npy".format(i))
+            np.save(p_, blends_array[i])
+            print("saved to path : {}".format(p_))
+
 
 def parse_yml(yml_path, img_list_len):
     fs = cv2.FileStorage (yml_path, cv2.FILE_STORAGE_READ)
@@ -291,20 +303,8 @@ if __name__ == "__main__":
             if clean:
                 while True:
                     if cv2.waitKey(1) == 27:
+                        savee()
                         clean = False
                         break
         
-        
-        
-        for i in range(blends_array.shape[0]):
-                image_canvases[img_indx] = cv2.multiply(image_canvases[img_indx].astype(np.float32), blends_array[i]).astype(np.uint8)
-        # saving the blend array 
-        # blends_array = np.ones((no_of_blends, HEIGHT, WIDTH, 3)).astype(np.float32)
-        p = image_name_list[img_indx].split('.')[0]
-        for i in range(blends_array.shape[0]):
-            p_ = os.path.join(save_path, p + "_blendmask_{}.npy".format(i))
-            np.save(p_, blends_array[i])
-            print("saved to path : {}".format(p_))
-
-    
 
