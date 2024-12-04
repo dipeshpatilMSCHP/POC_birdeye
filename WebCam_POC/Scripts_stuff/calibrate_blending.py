@@ -21,8 +21,10 @@ import sys
 import argparse
 import os
 from collections import OrderedDict
+import math
 
 PIXEL_STEP = 5
+alpha = 1e5
 
 
 def parse_yml(yml_path, img_list_len):
@@ -107,6 +109,47 @@ def blend_selection () :
     choice = int(input())
     return choice
 
+def do_sloped_blend(blend_points, blend_canvas):
+      
+    m32 = (blend_points [3, 1] - blend_points  [2, 1]) / ((blend_points [3, 0] - blend_points[ 2, 0]))
+    b32 = blend_points[ 3, 1] - m32 * blend_points[ 3,0]
+
+    m01 = (blend_points[ 1, 1] - blend_points[ 0, 1]) / (blend_points[ 1, 0] - blend_points[ 0, 0])
+    b01 = blend_points[ 1, 1] - m01 * blend_points[ 1,0]
+
+    m02 = (blend_points[ 2, 1] - blend_points[ 0, 1]) / (blend_points[ 2, 0] - blend_points[ 0, 0])
+    b02 = blend_points[ 2, 1] - m02 * blend_points[ 2,0]
+
+    for y in range(blend_canvas.shape[0]):
+        for x in range(blend_canvas.shape[1]):
+
+            # its a straight line 
+            if math.isinf(m01):
+                if x < blend_points[0, 0]:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+            elif (m02) > 0 and y < m02 * x + b02:
+                blend_canvas[y, x, :] = [1, 1, 1]
+            elif (m02) < 0 and y > m02 * x + b02:
+                blend_canvas[y, x, :] = [1, 1, 1]
+
+            if math.isinf(m01):
+                if x < blend_points[0, 0]:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+            elif (m01) > 0 and y > m01 * x + b01:
+                blend_canvas[y, x, :] = [1, 1, 1]
+            elif (m01) < 0 and y < m01 * x + b01:
+                blend_canvas[y, x, :] = [1, 1, 1]
+
+            if math.isinf(m32):
+                if x < blend_points[3, 0]:
+                    blend_canvas[y, x, :] = [1, 1, 1]
+            elif (m32) > 0 and y < m32 * x + b32:
+                blend_canvas[y, x, :] = [1, 1, 1]
+            elif (m32) < 0 and y > m32 * x + b32:
+                blend_canvas[y, x, :] = [1, 1, 1]
+
+    return blend_canvas
+
 
 if __name__ == "__main__":
     image_list, image_name_list, yml_data, save_path = parse_name()
@@ -146,7 +189,7 @@ if __name__ == "__main__":
             break
 
         blends_array = np.ones((no_of_blends, HEIGHT, WIDTH, 3)).astype(np.float32)
-        
+
         blend_points = np.array([[[ 10, 10], [10, HEIGHT - 10], [100, 10], [100, HEIGHT - 10]]])
         blend_points = np.tile (blend_points, (no_of_blends,1,1))
         blend_selected = 0
@@ -208,25 +251,7 @@ if __name__ == "__main__":
 
 
             if clean:
-                m32 = (blend_points[blend_selected, 3, 1] - blend_points[blend_selected, 2, 1]) / (blend_points[blend_selected, 3, 0] - blend_points[blend_selected, 2, 0])
-                b32 = blend_points[blend_selected, 3, 1] - m32 * blend_points[blend_selected, 3,0]
-
-                m01 = (blend_points[blend_selected, 1, 1] - blend_points[blend_selected, 0, 1]) / (blend_points[blend_selected, 1, 0] - blend_points[blend_selected, 0, 0])
-                b01 = blend_points[blend_selected, 1, 1] - m01 * blend_points[blend_selected, 1,0]
-
-                m02 = (blend_points[blend_selected, 2, 1] - blend_points[blend_selected, 0, 1]) / (blend_points[blend_selected, 2, 0] - blend_points[blend_selected, 0, 0])
-                b02 = blend_points[blend_selected, 2, 1] - m02 * blend_points[blend_selected, 2,0]
-
-                for y in range(tmp_canvas.shape[0]):
-                    for x in range(tmp_canvas.shape[1]):
-
-                        if y < m02 * x + b02 and x > blend_points[blend_selected, 0,0]-1 and x < blend_points[blend_selected, 2,0]+1:
-                            tmp_canvas[y, x, :] = [1, 1, 1]
-
-                        if y > m01 * x + b01 and x > (x_min-1):
-                            tmp_canvas[y, x, :] = [1, 1, 1]
-                        if y < m32 * x + b32 and x<x_max+1:
-                            tmp_canvas[y, x, :] = [1, 1, 1]
+                tmp_canvas = do_sloped_blend (blend_points[blend_selected], tmp_canvas)
 
             blends_array[blend_selected] = tmp_canvas.copy()
 
@@ -266,6 +291,8 @@ if __name__ == "__main__":
             if clean:
                 if (cv2.waitKey(0) == 27): # press x
                     clean = False
+        
+        
         
         for i in range(blends_array.shape[0]):
                 image_canvases[img_indx] = cv2.multiply(image_canvases[img_indx].astype(np.float32), blends_array[i]).astype(np.uint8)
