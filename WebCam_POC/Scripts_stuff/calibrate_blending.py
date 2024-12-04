@@ -124,12 +124,12 @@ def do_sloped_blend(blend_points, blend_canvas):
         for x in range(blend_canvas.shape[1]):
 
             # its a straight line 
-            if math.isinf(m01):
+            if math.isinf(m02):
                 if x < blend_points[0, 0]:
                     blend_canvas[y, x, :] = [1, 1, 1]
-            elif (m02) > 0 and y < m02 * x + b02:
+            elif (m02) > 0 and y > m02 * x + b02:
                 blend_canvas[y, x, :] = [1, 1, 1]
-            elif (m02) < 0 and y > m02 * x + b02:
+            elif (m02) < 0 and y < m02 * x + b02:
                 blend_canvas[y, x, :] = [1, 1, 1]
 
             if math.isinf(m01):
@@ -289,8 +289,10 @@ if __name__ == "__main__":
             cv2.imshow("canvas", final_canvas)
             cv2.imshow("ref", x)
             if clean:
-                if (cv2.waitKey(0) == 27): # press x
-                    clean = False
+                while True:
+                    if cv2.waitKey(1) == 27:
+                        clean = False
+                        break
         
         
         
