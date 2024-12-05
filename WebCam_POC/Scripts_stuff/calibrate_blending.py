@@ -23,7 +23,7 @@ import os
 from collections import OrderedDict
 import math
 
-PIXEL_STEP = 15
+PIXEL_STEP = 5
 alpha = 1e5
 
 def savee(blend_num):
