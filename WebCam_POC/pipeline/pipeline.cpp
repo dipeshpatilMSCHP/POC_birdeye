@@ -150,10 +150,15 @@ int main(int argc, char* argv[]) {
     }
 
     // adding the matrix part. 
-    cv::Mat final_canvas, rot_mat, roi_0, roi_1; 
+    cv::Mat rot_mat, roi_0, roi_1, tmp_canvas; 
+    
     vector<cv::Mat> translated_canvas{cv::Mat(cv::Size(1280, 720), top_images[0].type(), cv::Scalar(0, 0, 0)), \
     cv::Mat(cv::Size(1280, 720), top_images[0].type(), cv::Scalar(0, 0, 0)),\
     cv::Mat(cv::Size(1280, 720), top_images[0].type(), cv::Scalar(0, 0, 0))};
+
+    cv::Mat final_canvas(cv::Size(1280, 720), top_images[0].type(), cv::Scalar(0, 0, 0));
+
+
 
     cv::Point2f point2f_tmp;
     int off_x, off_y;
@@ -164,24 +169,24 @@ int main(int argc, char* argv[]) {
         // rotation and scale part 
         cv::Point2f c (parser.rotation_center[i].at<int>(0,0), parser.rotation_center[i].at<int>(0,1));
         rot_mat = cv::getRotationMatrix2D(c, parser.rotation_angle[i], parser.scale[i]);
-        cv::warpAffine(top_images[i], final_canvas, rot_mat, cv::Size(1280,720));
+        cv::warpAffine(top_images[i], tmp_canvas, rot_mat, cv::Size(1280,720));
 
         off_x = parser.offset[i].at<int>(0,0);
         off_y = parser.offset[i].at<int>(0,1);
 
-        roi_0 = final_canvas(cv::Rect (0, 0, 1280 - off_x, 720 - off_y));
+        roi_0 = tmp_canvas(cv::Rect (0, 0, 1280 - off_x, 720 - off_y));
         roi_1 = translated_canvas[i](cv::Rect (off_x, off_y, 1280 - off_x, 720- off_y));
         roi_0.copyTo(roi_1);
 
         roi_0.release();
         roi_1.release();
-        final_canvas.release();
+        tmp_canvas.release();
         rot_mat.release();
+
+        cv::add (final_canvas, translated_canvas[i], final_canvas);
     }
 
-    for(int i = 0; i < 3; i++) {
-        cv::imshow(to_string(i), translated_canvas[i]);
-    }
+    cv::imshow("final canvas", final_canvas);
     cv::waitKey(0);
     
     return 0;
