@@ -23,20 +23,21 @@ import os
 from collections import OrderedDict
 import math
 
-PIXEL_STEP = 5
+PIXEL_STEP = 15
 alpha = 1e5
 
-def savee():
-        
-        for i in range(blends_array.shape[0]):
-                image_canvases[img_indx] = cv2.multiply(image_canvases[img_indx].astype(np.float32), blends_array[i]).astype(np.uint8)
+def savee(blend_num):
+     
+    i=blend_num
+    #for i in range(blends_array.shape[0]):
+    image_canvases[img_indx] = cv2.multiply(image_canvases[img_indx].astype(np.float32), blends_array[i]).astype(np.uint8)
         # saving the blend array 
         # blends_array = np.ones((no_of_blends, HEIGHT, WIDTH, 3)).astype(np.float32)
-        p = image_name_list[img_indx].split('.')[0]
-        for i in range(blends_array.shape[0]):
-            p_ = os.path.join(save_path, p + "_blendmask_{}.npy".format(i))
-            np.save(p_, blends_array[i])
-            print("saved to path : {}".format(p_))
+    p = image_name_list[img_indx].split('.')[0]
+    #for i in range(blends_array.shape[0]):
+    p_ = os.path.join(save_path, p + "_blendmask_{}.npy".format(i))
+    np.save(p_, blends_array[i])
+    print("saved to path : {}".format(p_))
 
 
 def parse_yml(yml_path, img_list_len):
@@ -322,10 +323,13 @@ if __name__ == "__main__":
             cv2.imshow("canvas", final_canvas)
             cv2.imshow("ref", x)
             if clean:
-                while True:
-                    if cv2.waitKey(1) == 27:
-                        savee()
-                        clean = False
-                        break
-        
+                print("press s to save or esc to make changes")
+                save_key=cv2.waitKey(0)
+                if save_key == 27:
+                    print("not saving")
+                    clean=False
+                if save_key == 115:
+                    savee(blend_selected)
+                    print("press n for next blend or esc for next img ")
+                    clean = False
 
