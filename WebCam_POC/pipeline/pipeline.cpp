@@ -144,16 +144,19 @@ int main(int argc, char* argv[]) {
     for(int i = 0; i < total_images; i++) {
         tmp = cv::imread(parser.img_paths[i]);
         cv::warpPerspective (tmp, tmp, parser.perspective_transform_matrix[i], cv::Size(tmp.cols, tmp.rows));
-        std::cout << tmp.cols << " " <<  tmp.rows << std::endl;
         top_images.push_back (tmp);
 
         tmp.release();
     }
 
     // adding the matrix part. 
-    cv::Mat final_canvas, rot_mat; 
-    vector<cv::Mat> translated_canvas[3];
+    cv::Mat final_canvas, rot_mat, roi_0, roi_1; 
+    vector<cv::Mat> translated_canvas{cv::Mat(cv::Size(1280, 720), top_images[0].type(), cv::Scalar(0, 0, 0)), \
+    cv::Mat(cv::Size(1280, 720), top_images[0].type(), cv::Scalar(0, 0, 0)),\
+    cv::Mat(cv::Size(1280, 720), top_images[0].type(), cv::Scalar(0, 0, 0))};
+
     cv::Point2f point2f_tmp;
+    int off_x, off_y;
 
     // rotate -> translate
     for(int i = 0; i < total_images; i++) {
@@ -163,10 +166,21 @@ int main(int argc, char* argv[]) {
         rot_mat = cv::getRotationMatrix2D(c, parser.rotation_angle[i], parser.scale[i]);
         cv::warpAffine(top_images[i], final_canvas, rot_mat, cv::Size(1280,720));
 
+        off_x = parser.offset[i].at<int>(0,0);
+        off_y = parser.offset[i].at<int>(0,1);
 
+        roi_0 = final_canvas(cv::Rect (0, 0, 1280 - off_x, 720 - off_y));
+        roi_1 = translated_canvas[i](cv::Rect (off_x, off_y, 1280 - off_x, 720- off_y));
+        roi_0.copyTo(roi_1);
 
+        roi_0.release();
+        roi_1.release();
         final_canvas.release();
         rot_mat.release();
+    }
+
+    for(int i = 0; i < 3; i++) {
+        cv::imshow(to_string(i), translated_canvas[i]);
     }
     cv::waitKey(0);
     
