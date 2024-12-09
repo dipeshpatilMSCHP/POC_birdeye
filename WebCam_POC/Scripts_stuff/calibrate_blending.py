@@ -10,7 +10,7 @@ Calibrate the blending onto an image.
         change point            : space 
         clean blending          : 'c'
         get out of clean blend  : Esc
-
+        save blending mask      : 's'
 
 '''
 
@@ -35,8 +35,8 @@ def savee(blend_num):
         # blends_array = np.ones((no_of_blends, HEIGHT, WIDTH, 3)).astype(np.float32)
     p = image_name_list[img_indx].split('.')[0]
     #for i in range(blends_array.shape[0]):
-    p_ = os.path.join(save_path, p + "_blendmask_{}.npy".format(i))
-    np.save(p_, blends_array[i])
+    p_ = os.path.join(save_path, p + "_blendmask_{}.jpg".format(i))
+    cv2.imwrite(p_, (blends_array[i] * 255).astype(np.uint8))
     print("saved to path : {}".format(p_))
 
 
@@ -50,9 +50,9 @@ def parse_yml(yml_path, img_list_len):
 
     for i in range(img_list_len):
         x = "img{}".format(i)
-        for s in ["_rotate_center", "_rotate", "_scale", "offset"]:
+        for s in ["_rotate_center", "_rotate_angle", "_scale", "offset"]:
             y = x + s
-            if s in ["_rotate", "offset"]:
+            if s in ["_rotate_center", "offset"]:
                 attr[y] = fs.getNode(y).mat()[:,0].tolist()
                 
             else:
@@ -102,8 +102,8 @@ def generate_canvases(image_array, yml_data):
 
         strx = "img{}".format(i)
         # rotation 
-        rotate_center = yml_data[strx + "_rotate"]
-        rotate_angle = yml_data[strx + "_rotate_center"]
+        rotate_center = yml_data[strx + "_rotate_center"]
+        rotate_angle = yml_data[strx + "_rotate_angle"]
         scale = yml_data[strx + "_scale"]
         
         # rotate image 
