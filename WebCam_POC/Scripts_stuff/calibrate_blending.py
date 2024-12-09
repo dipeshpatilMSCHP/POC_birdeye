@@ -10,7 +10,7 @@ Calibrate the blending onto an image.
         change point            : space 
         clean blending          : 'c'
         get out of clean blend  : Esc
-
+        save blending mask      : 's'
 
 '''
 
