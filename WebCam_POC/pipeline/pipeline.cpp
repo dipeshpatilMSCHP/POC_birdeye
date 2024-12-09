@@ -158,7 +158,12 @@ int main(int argc, char* argv[]) {
 
     cv::Mat final_canvas(cv::Size(1280, 720), top_images[0].type(), cv::Scalar(0, 0, 0));
 
-
+    // hardcoding blending mask pART : TO INTEGRATE IN PARSE_INFO. 
+    cv::Mat img0_mask00 = cv::imread("/home/dipesh/projects/Demo/WebCam_POC/pipeline/data/c2-view_blendmask_0.jpg");
+    cv::Mat img0_mask01 = cv::imread("/home/dipesh/projects/Demo/WebCam_POC/pipeline/data/c2-view_blendmask_1.jpg");
+    cv::Mat img1_mask00 = cv::imread("/home/dipesh/projects/Demo/WebCam_POC/pipeline/data/c1-view_blendmask_0.jpg");
+    cv::Mat img2_mask00 = cv::imread("/home/dipesh/projects/Demo/WebCam_POC/pipeline/data/c3-view_blendmask_0.jpg");
+    vector <cv::Mat> 
 
     cv::Point2f point2f_tmp;
     int off_x, off_y;
@@ -183,7 +188,6 @@ int main(int argc, char* argv[]) {
         tmp_canvas.release();
         rot_mat.release();
 
-        cv::add (final_canvas, translated_canvas[i], final_canvas);
     }
 
     cv::imshow("final canvas", final_canvas);
@@ -191,7 +195,3 @@ int main(int argc, char* argv[]) {
     
     return 0;
 }
-
-/** 
-cv::warpPerspective (image, transform_img, matrix, cv::Size(img_w, img_h));
- */
