@@ -156,7 +156,7 @@ def do_sloped_blend(blend_points, blend_canvas):
                 if x < blend_points[0, 0]:
                     blend_canvas[y, x, :] = [1, 1, 1]
             if (m02 > 0 and b02 < 0) or (m02 < 0 and b02 > 0):
-                if (m02) > 0 and y > m02 * x + b02:
+                if (m02) > 0 and y < m02 * x + b02:
                     blend_canvas[y, x, :] = [1, 1, 1]
                 elif (m02) < 0 and y < m02 * x + b02:
                     blend_canvas[y, x, :] = [1, 1, 1]
